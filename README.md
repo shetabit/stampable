@@ -1,3 +1,5 @@
+<p align="center"><img src="resources/images/stamp.jpg?raw=true"></p>
+
 # Laravel Stampable
 
 [![Software License][ico-license]](LICENSE.md)
@@ -29,6 +31,8 @@ Via Composer
 ``` bash
 $ composer require shetabit/stampable
 ```
+
+# How to use
 
 ## Configure Migration
 
@@ -85,7 +89,9 @@ class Category extends Model implements Stampable
 }
 ```
 
-stamps must be in ['stampName' => 'databaseFieldName'] format.
+stamps must be in `['stampName' => 'databaseFieldName']` format.
+
+## Working with stamps
 
 Model creates methods and local scopes for each stamp dynamically.
 
