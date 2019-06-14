@@ -2,7 +2,7 @@
 
 [![Software License][ico-license]](LICENSE.md)
 [![Latest Version on Packagist][ico-version]][link-packagist]
-[![StyleCI](https://github.styleci.io/repos/169948762/shield?branch=master)](https://github.styleci.io/repos/169948762)
+[![StyleCI](https://github.styleci.io/repos/191824596/shield?branch=master)](https://github.styleci.io/repos/191824596)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e6a80b17298cb4fcb56d/maintainability)](https://codeclimate.com/github/shetabit/stampable/maintainability)
 [![Quality Score][ico-code-quality]][link-code-quality]
 
