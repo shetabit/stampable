@@ -5,14 +5,6 @@ namespace Shetabit\Stampable\Traits;
 trait HasStamps
 {
     /**
-     * Defines stamps list
-     * stamps must be in ['stampName' => 'databaseFieldName'] format
-     *
-     * @var array
-     */
-    protected $stamps = [];
-
-    /**
      * Get current timestamp
      *
      * @return false|\Illuminate\Support\Carbon|string
