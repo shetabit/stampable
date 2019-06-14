@@ -46,13 +46,13 @@ trait HasStamps
     {
         $stamps = [];
 
-        if(!empty($this->stamps)) {
+        if (!empty($this->stamps)) {
             /*
              * Change structure to [stampName => fieldName]
              * if stampName is numeric, we use fieldName as stampName.
              */
             foreach ($this->stamps as $key => $stamp) {
-                if(is_numeric($key)) {
+                if (is_numeric($key)) {
                     $stamps[$stamp] = $stamp;
                 } else {
                     $stamps[$key] = $stamp;
@@ -176,7 +176,7 @@ trait HasStamps
         foreach ($stampKeys as $key) {
             if ($method == $key) {
                 $scope = 'stamped';
-            } else if($method == 'un'.strtolower($key)) {
+            } else if ($method == 'un'.strtolower($key)) {
                 $scope = 'unstamped';
             }
         }
