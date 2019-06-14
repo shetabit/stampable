@@ -1,0 +1,60 @@
+{
+    "name": "shetabit/stampable",
+    "type": "library",
+    "description": "add stamp behaviors in laravel models",
+    "keywords": [
+        "stamp",
+        "shetabit",
+        "stampable",
+        "laravel stamp",
+        "laravel stampable",
+        "laravel stamp package",
+        "laravel stampable package",
+        "laravel stamp models",
+        "laravel stampable models",
+        "laravel add stamp to models",
+        "laravel models stamp behaviors"
+    ],
+    "homepage": "https://github.com/shetabit/stampable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mahdi Khanzadi",
+            "email": "khanzadimahdi@gmail.com",
+            "homepage": "https://github.com/shetabit",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "illuminate/support": "~5.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.8",
+        "phpunit/phpunit": ">=8.2.1",
+        "squizlabs/php_codesniffer": "^3.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shetabit\\Stampable\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Shetabit\\Stampable\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "check-style": "phpcs -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests",
+        "fix-style": "phpcbf -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
