@@ -176,7 +176,7 @@ trait HasStamps
         foreach ($stampKeys as $key) {
             if ($method == $key) {
                 $scope = 'stamped';
-            } else if ($method == 'un'.strtolower($key)) {
+            } elseif ($method == 'un'.strtolower($key)) {
                 $scope = 'unstamped';
             }
         }
