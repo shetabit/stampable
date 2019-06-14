@@ -35,9 +35,8 @@ $ composer require shetabit/stampable
 In your migration you must add `timestamp` field per each stamp.
 
 ```php
-<?php
-    // In migration, you must add published_at field like the below if you want to use it as a stamp.
-    $table->timestamp('published_at')->nullable();
+// In migration, you must add published_at field like the below if you want to use it as a stamp.
+$table->timestamp('published_at')->nullable();
 ```
 
 ## Configure Model

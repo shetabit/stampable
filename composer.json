@@ -1,7 +1,7 @@
 {
     "name": "shetabit/stampable",
     "type": "library",
-    "description": "add stamp behaviors in laravel models",
+    "description": "Add stamp behaviors into laravel models.",
     "keywords": [
         "stamp",
         "shetabit",
