@@ -137,6 +137,8 @@ trait HasStamps
     private function getStampBehavior($method)
     {
         $behavior = null;
+        $stampName = null;
+        $lowerCaseMethod = strtolower($method);
 
         $prefixes = [
             'is' => 'isStampedBy',
@@ -149,26 +151,28 @@ trait HasStamps
 
         foreach ($stampsName as $key => $name) {
             foreach ($prefixes as $prefix => $methodName) {
-                if ($prefix.$key == $method) {
+                if (strtolower($prefix.$name) == $lowerCaseMethod) {
                     $behavior = $methodName;
+                    $stampName = $name;
                     break;
                 }
             }
         }
 
-        return $behavior;
+        return empty($behavior) ? false : [$behavior, $stampName];
     }
 
     private function getStampScope($method)
     {
         $scope = null;
+        $lowerCaseMethod = strtolower($method);
 
         $stampKeys = array_keys($this->getStamps());
 
         foreach ($stampKeys as $key) {
-            if ($method == $key) {
+            if ($lowerCaseMethod == $key) {
                 $scope = 'stamped';
-            } elseif ($method == 'un'.strtolower($key)) {
+            } elseif ($lowerCaseMethod == strtolower('un'.$key)) {
                 $scope = 'unstamped';
             }
         }
@@ -189,8 +193,10 @@ trait HasStamps
             return $this->$method(...$parameters);
         }
 
-        if ($methodName = $this->getStampBehavior($method)) {
-            return $this->$methodName(...$parameters);
+        if ($info = $this->getStampBehavior($method)) {
+            $methodName = $info[0];
+            $stampName = $info[1];
+            return $this->$methodName($stampName);
         }
 
         if ($methodName = $this->getStampScope($method)) {
