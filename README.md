@@ -4,11 +4,14 @@
 
 [![Software License][ico-license]](LICENSE.md)
 [![Latest Version on Packagist][ico-version]][link-packagist]
-[![StyleCI](https://github.styleci.io/repos/191824596/shield?branch=master)](https://github.styleci.io/repos/191824596)
-[![Maintainability](https://api.codeclimate.com/v1/badges/e6a80b17298cb4fcb56d/maintainability)](https://codeclimate.com/github/shetabit/stampable/maintainability)
-[![Quality Score][ico-code-quality]][link-code-quality]
+[![Total Downloads on Packagist][ico-download]][link-packagist]
+[![Tests][ico-tests]][link-tests]
+[![Code Style][ico-code-style]][link-code-style]
+[![Static Analysis][ico-static-analysis]][link-static-analysis]
+[![Code Coverage][ico-coverage]][link-coverage]
 
-This is a Laravel Package for adding stamp behaviors into laravel models. This package supports `Laravel 5.2+`.
+This is a Laravel Package for adding stamp behaviors into laravel models. This package supports `PHP 8.4+` and
+`Laravel 12` and `13`.
 
 # List of contents
 
@@ -18,6 +21,8 @@ This is a Laravel Package for adding stamp behaviors into laravel models. This p
   - [Configure Model](#configure-model)
   - [Define stamps](#define-stamps)
   - [Working with stamps](#working-with-stamps)
+  - [Unknown stamps](#unknown-stamps)
+- [Testing](#testing)
 - [Change log](#change-log)
 - [Contributing](#contributing)
 - [Security](#security)
@@ -117,6 +122,54 @@ Category::published()->get(); // retrieve published datas
 Category::unpublished()->get(); // retrieve unpublished datas
 ```
 
+## Unknown stamps
+
+A stamp that the model does not declare throws a `Shetabit\Stampable\Exceptions\StampNotFoundException`, and the
+message names the stamps that are available:
+
+```php
+$post->isStampedBy('nonexistent');
+// The stamp [nonexistent] is not defined. Available stamps: published, verified.
+```
+
+`hasStamp()` asks the same question without throwing, and `getStampField()` resolves a stamp to the column behind it.
+
+## Testing
+
+Every pull request and every push to `master` is checked by [GitHub Actions][link-actions]: the test suite runs on
+PHP 8.4 and 8.5 against Laravel 12 and 13 (both the lowest and the highest supported dependencies), the coding style
+is checked with PHP_CodeSniffer, the sources are analysed with PHPStan and the code coverage is measured.
+
+The tests run against real Eloquent models on an in-memory sqlite database through Orchestra Testbench, so the
+stamps, the scopes and the dynamic methods are exercised the way an application uses them.
+
+```bash
+composer install
+
+composer test           # run the test suite
+composer test-coverage  # run the test suite and report code coverage
+composer check-style    # check the coding style
+composer fix-style      # fix the coding style where possible
+composer analyse        # run static analysis
+composer ci             # run all of the checks above
+```
+
+If you would rather not install PHP on your machine, the shipped `Dockerfile` and `Makefile` run everything inside a
+container:
+
+```bash
+make test              # run the test suite
+make coverage          # run the test suite and report code coverage
+make check-style       # check the coding style
+make fix-style         # fix the coding style where possible
+make analyse           # run static analysis
+make ci                # run all of the checks above
+make shell             # open a shell inside the container
+make help              # list every available target
+```
+
+Another PHP version can be used with `make test PHP_VERSION=8.5`.
+
 ## Change log
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
@@ -139,11 +192,19 @@ If you discover any security related issues, please email khanzadimahdi@gmail.co
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
 [ico-version]: https://img.shields.io/packagist/v/shetabit/stampable.svg?style=flat-square
+[ico-download]: https://img.shields.io/packagist/dt/shetabit/stampable.svg?color=%23F18&style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-code-quality]: https://img.shields.io/scrutinizer/g/shetabit/stampable.svg?label=Code%20Quality&style=flat-square
+[ico-tests]: https://img.shields.io/github/actions/workflow/status/shetabit/stampable/tests.yml?branch=master&label=Tests&style=flat-square
+[ico-code-style]: https://img.shields.io/github/actions/workflow/status/shetabit/stampable/code-style.yml?branch=master&label=Code%20Style&style=flat-square
+[ico-static-analysis]: https://img.shields.io/github/actions/workflow/status/shetabit/stampable/static-analysis.yml?branch=master&label=Static%20Analysis&style=flat-square
+[ico-coverage]: https://img.shields.io/codecov/c/github/shetabit/stampable/master?label=Coverage&style=flat-square
 
 [link-en]: README.md
 [link-packagist]: https://packagist.org/packages/shetabit/stampable
-[link-code-quality]: https://scrutinizer-ci.com/g/shetabit/stampable
+[link-actions]: https://github.com/shetabit/stampable/actions
+[link-tests]: https://github.com/shetabit/stampable/actions/workflows/tests.yml
+[link-code-style]: https://github.com/shetabit/stampable/actions/workflows/code-style.yml
+[link-static-analysis]: https://github.com/shetabit/stampable/actions/workflows/static-analysis.yml
+[link-coverage]: https://codecov.io/gh/shetabit/stampable
 [link-author]: https://github.com/khanzadimahdi
 [link-contributors]: ../../contributors
