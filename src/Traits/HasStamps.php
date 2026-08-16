@@ -2,207 +2,191 @@
 
 namespace Shetabit\Stampable\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Shetabit\Stampable\Exceptions\StampNotFoundException;
+
+/**
+ * @mixin Model
+ */
 trait HasStamps
 {
     /**
-     * Get current timestamp
+     * The prefixes of the dynamic methods, ordered so that a stamp whose own name starts
+     * with `un` wins over the negation of the stamp behind it.
      *
-     * @return false|\Illuminate\Support\Carbon|string
+     * @var array<string, string>
      */
-    private function getFreshTimestamp()
-    {
-        $timestamp = function_exists('now') ? now() : date('Y/m/d H:i:s');
-
-        return $timestamp;
-    }
+    private const array BEHAVIORS = [
+        'is' => 'isStampedBy',
+        'markAs' => 'markAsStamped',
+        'isUn' => 'isUnstampedBy',
+        'markAsUn' => 'markAsUnstamped',
+    ];
 
     /**
-     * Determine if an stamp exists
+     * The stamps of the model, as `[stampName => fieldName]`.
      *
-     * @param $stampName
-     * @return bool
+     * @return array<string, string>
      */
-    private function stampExists($stampName)
-    {
-        $stamps = $this->getStamps();
-
-        return isset($stamps[$stampName]);
-    }
-
-    /**
-     * Retrieve available stamps
-     *
-     * @return array
-     */
-    public function getStamps()
+    public function getStamps() : array
     {
         $stamps = [];
 
-        if (!empty($this->stamps)) {
-            /*
-             * Change structure to [stampName => fieldName]
-             * if stampName is numeric, we use fieldName as stampName.
-             */
-            foreach ($this->stamps as $key => $stamp) {
-                if (is_numeric($key)) {
-                    $stamps[$stamp] = $stamp;
-                } else {
-                    $stamps[$key] = $stamp;
-                }
-            }
+        foreach ($this->declaredStamps() as $name => $field) {
+            $stamps[is_int($name) ? $field : $name] = $field;
         }
 
         return $stamps;
     }
 
-    /**
-     * Determine if the data is published.
-     *
-     * @param $stampName
-     * @return bool
-     */
-    public function isStampedBy($stampName)
+    public function hasStamp(string $stampName) : bool
     {
-        $stamps = $this->getStamps();
-
-        // if stamp exists, we check it for not being null, or will return false
-        return $this->stampExists($stampName) ? ($this->{$stamps[$stampName]} !== null) : false;
+        return isset($this->getStamps()[$stampName]);
     }
 
     /**
-     * Determine if the data is unpublished.
-     *
-     * @param $stampName
-     * @return bool
+     * @throws StampNotFoundException
      */
-    public function isUnstampedBy($stampName)
+    public function getStampField(string $stampName) : string
     {
         $stamps = $this->getStamps();
 
-        // if stamp exists, we check it for being null, or will return false
-        return $this->stampExists($stampName) ? ($this->{$stamps[$stampName]} == null) : false;
+        return $stamps[$stampName]
+            ?? throw StampNotFoundException::forStamp($stampName, array_keys($stamps));
     }
 
     /**
-     * Mark the current instance as stamped.
-     *
-     * @return bool
+     * @throws StampNotFoundException
      */
-    public function markAsStamped($stampName)
+    public function isStampedBy(string $stampName) : bool
     {
-        $stamps = $this->getStamps();
-
-
-        return $this->forceFill([$stamps[$stampName] => $this->getFreshTimestamp()])->save();
+        return $this->{$this->getStampField($stampName)} !== null;
     }
 
     /**
-     * Mark the current instance as unstamped.
-     *
-     * @return bool
+     * @throws StampNotFoundException
      */
-    public function markAsUnstamped($stampName)
+    public function isUnstampedBy(string $stampName) : bool
     {
-        $stamps = $this->getStamps();
-
-        return $this->forceFill([$stamps[$stampName] => null])->save();
+        return ! $this->isStampedBy($stampName);
     }
 
     /**
-     * Get only stamped data.
-     *
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function scopeStamped($query, $stampName)
+    public function markAsStamped(string $stampName) : bool
     {
-        $stamps = $this->getStamps();
-
-        return $query->whereNotNull($stamps[$stampName]);
+        return $this->forceFill([$this->getStampField($stampName) => $this->freshTimestamp()])->save();
     }
 
     /**
-     * Get only unstamped data.
-     *
-     * @param $query
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function scopeUnstamped($query, $stampName)
+    public function markAsUnstamped(string $stampName) : bool
     {
-        $stamps = $this->getStamps();
-
-        return $query->whereNull($stamps[$stampName]);
+        return $this->forceFill([$this->getStampField($stampName) => null])->save();
     }
 
-    private function getStampBehavior($method)
+    /**
+     * @param  Builder<covariant Model>  $query
+     * @return Builder<covariant Model>
+     *
+     * @throws StampNotFoundException
+     */
+    public function scopeStamped(Builder $query, string $stampName) : Builder
     {
-        $behavior = null;
-        $stampName = null;
-        $lowerCaseMethod = strtolower($method);
-
-        $prefixes = [
-            'is' => 'isStampedBy',
-            'isUn' => 'isUnstampedBy',
-            'markAs' => 'markAsStamped',
-            'markAsUn' => 'markAsUnstamped'
-        ];
-
-        $stampsName = array_keys($this->getStamps());
-
-        foreach ($stampsName as $key => $name) {
-            foreach ($prefixes as $prefix => $methodName) {
-                if (strtolower($prefix.$name) == $lowerCaseMethod) {
-                    $behavior = $methodName;
-                    $stampName = $name;
-                    break;
-                }
-            }
-        }
-
-        return empty($behavior) ? false : [$behavior, $stampName];
+        return $query->whereNotNull($this->getStampField($stampName));
     }
 
-    private function getStampScope($method)
+    /**
+     * @param  Builder<covariant Model>  $query
+     * @return Builder<covariant Model>
+     *
+     * @throws StampNotFoundException
+     */
+    public function scopeUnstamped(Builder $query, string $stampName) : Builder
     {
-        $scope = null;
-        $lowerCaseMethod = strtolower($method);
-
-        $stampKeys = array_keys($this->getStamps());
-
-        foreach ($stampKeys as $key) {
-            if ($lowerCaseMethod == $key) {
-                $scope = 'stamped';
-            } elseif ($lowerCaseMethod == strtolower('un'.$key)) {
-                $scope = 'unstamped';
-            }
-        }
-
-        return $scope;
+        return $query->whereNull($this->getStampField($stampName));
     }
 
     /**
      * Handle dynamic method calls into the model.
      *
      * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
+     * @param  array<int, mixed>  $parameters
      */
-    public function __call($method, $parameters)
+    public function __call($method, $parameters) : mixed
     {
-        if (in_array($method, ['increment', 'decrement'])) {
-            return $this->$method(...$parameters);
+        if (($behavior = $this->getStampBehavior($method)) !== null) {
+            [$behaviorMethod, $stampName] = $behavior;
+
+            return $this->{$behaviorMethod}($stampName);
         }
 
-        if ($info = $this->getStampBehavior($method)) {
-            $methodName = $info[0];
-            $stampName = $info[1];
-            return $this->$methodName($stampName);
+        if (($scope = $this->getStampScope($method)) !== null) {
+            [$scopeMethod, $stampName] = $scope;
+
+            return $this->forwardCallTo($this->newQuery(), $scopeMethod, [$stampName]);
         }
 
-        if ($methodName = $this->getStampScope($method)) {
-            return $this->forwardCallTo($this->newQuery(), $methodName, [$method]);
+        return parent::__call($method, $parameters);
+    }
+
+    /**
+     * The stamps the way the model declares them, either as `[stampName => fieldName]`
+     * or as a plain list of field names.
+     *
+     * @return array<array-key, string>
+     */
+    private function declaredStamps() : array
+    {
+        return property_exists($this, 'stamps') ? $this->stamps : [];
+    }
+
+    /**
+     * The behavior and the stamp a dynamic method such as `markAsPublished` stands for.
+     *
+     * @return array{string, string}|null
+     */
+    private function getStampBehavior(string $method) : array|null
+    {
+        $lowerCaseMethod = strtolower($method);
+        $stampNames = array_keys($this->getStamps());
+
+        foreach (self::BEHAVIORS as $prefix => $behavior) {
+            foreach ($stampNames as $stampName) {
+                if ($lowerCaseMethod === strtolower($prefix.$stampName)) {
+                    return [$behavior, $stampName];
+                }
+            }
         }
 
-        return $this->forwardCallTo($this->newQuery(), $method, $parameters);
+        return null;
+    }
+
+    /**
+     * The scope and the stamp a dynamic method such as `unpublished` stands for.
+     *
+     * @return array{string, string}|null
+     */
+    private function getStampScope(string $method) : array|null
+    {
+        $lowerCaseMethod = strtolower($method);
+        $stampNames = array_keys($this->getStamps());
+
+        foreach ($stampNames as $stampName) {
+            if ($lowerCaseMethod === strtolower($stampName)) {
+                return ['stamped', $stampName];
+            }
+        }
+
+        foreach ($stampNames as $stampName) {
+            if ($lowerCaseMethod === strtolower('un'.$stampName)) {
+                return ['unstamped', $stampName];
+            }
+        }
+
+        return null;
     }
 }

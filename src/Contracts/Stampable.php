@@ -2,61 +2,57 @@
 
 namespace Shetabit\Stampable\Contracts;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Shetabit\Stampable\Exceptions\StampNotFoundException;
+
 interface Stampable
 {
     /**
-     * Retrieve available stamps
-     *
-     * @return array
+     * @return array<string, string>
      */
-    public function getStamps();
+    public function getStamps() : array;
+
+    public function hasStamp(string $stampName) : bool;
 
     /**
-     * Determine if the data is published.
-     *
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function isStampedBy($stampName);
+    public function getStampField(string $stampName) : string;
 
     /**
-     * Determine if the data is unpublished.
-     *
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function isUnstampedBy($stampName);
+    public function isStampedBy(string $stampName) : bool;
 
     /**
-     * Mark the current instance as stamped.
-     *
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function markAsStamped($stampName);
+    public function isUnstampedBy(string $stampName) : bool;
 
     /**
-     * Mark the current instance as unstamped.
-     *
-     * @return bool
+     * @throws StampNotFoundException
      */
-    public function markAsUnstamped($stampName);
+    public function markAsStamped(string $stampName) : bool;
 
     /**
-     * Get only stamped data.
-     *
-     * @param $query
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function scopeStamped($query, $stampName);
+    public function markAsUnstamped(string $stampName) : bool;
 
     /**
-     * Get only unstamped data.
+     * @param  Builder<covariant Model>  $query
+     * @return Builder<covariant Model>
      *
-     * @param $query
-     * @param $stampName
-     * @return mixed
+     * @throws StampNotFoundException
      */
-    public function scopeUnstamped($query, $stampName);
+    public function scopeStamped(Builder $query, string $stampName) : Builder;
+
+    /**
+     * @param  Builder<covariant Model>  $query
+     * @return Builder<covariant Model>
+     *
+     * @throws StampNotFoundException
+     */
+    public function scopeUnstamped(Builder $query, string $stampName) : Builder;
 }
